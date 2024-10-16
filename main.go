@@ -2,20 +2,30 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"ncquang/task-manager/commands"
+	"ncquang/task-manager/storage"
 	"os"
 )
 
+const filePath = "todo.txt"
+
 func main() {
+	storage, err := storage.NewFileStorage(filePath)
+	if err != nil {
+		log.Fatalf("Init file storage failed : %v", err)
+	}
 	var listCommand []commands.CommandInterface
-	list := commands.NewListCommand()
-	listCommand = append(listCommand, list)
-	add := commands.NewAddCommand()
+	add := commands.NewAddCommand(storage)
 	listCommand = append(listCommand, add)
-	delete := commands.NewDeleteCommand()
+	delete := commands.NewDeleteCommand(storage)
 	listCommand = append(listCommand, delete)
-	markDone := commands.NewMarkDoneCommand()
+	markDone := commands.NewMarkDoneCommand(storage)
 	listCommand = append(listCommand, markDone)
+	list := commands.NewListCommand(storage)
+	listCommand = append(listCommand, list)
+	markInProgress := commands.NewMarkInProgressCommand(storage)
+	listCommand = append(listCommand, markInProgress)
 
 	var matchedCmd commands.CommandInterface = nil
 	for _, cmd := range listCommand {

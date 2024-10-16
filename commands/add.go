@@ -1,46 +1,36 @@
 package commands
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
+	"ncquang/task-manager/storage"
 	"ncquang/task-manager/utils"
 	"os"
 	"time"
 )
 
 type AddCommand struct {
-	name string
+	cmd Command
 }
 
-func NewAddCommand() *AddCommand {
-	return &AddCommand{name: "add"}
+func NewAddCommand(storage storage.IStorage) *AddCommand {
+	return &AddCommand{cmd: Command{
+		name:    "add",
+		storage: storage,
+	}}
 }
 
 func (cmd *AddCommand) Exec() {
-	addCommand := flag.NewFlagSet(cmd.name, flag.ExitOnError)
+	addCommand := flag.NewFlagSet(cmd.cmd.name, flag.ExitOnError)
 	addCommand.Parse(os.Args[2:])
 	if len(addCommand.Args()) < 1 {
 		fmt.Println("Task description is missing !")
 		os.Exit(1)
 	} else {
-		var file *os.File
-		file, err := os.OpenFile(filePath, os.O_RDWR, 0644)
-
-		if os.IsNotExist(err) {
-			file, err = os.Create(filePath)
-
-			if err != nil {
-				log.Fatalf("Error %v", err)
-			}
-		}
-
-		defer file.Close()
-
 		newTask := createNewTask(addCommand.Arg(0))
-		err = saveNewTask(file, newTask)
+
+		err := saveNewTask(cmd.cmd.storage, newTask)
 
 		if err != nil {
 			log.Fatalf("Error : %v", err)
@@ -52,44 +42,18 @@ func (cmd *AddCommand) Exec() {
 	}
 }
 
-func saveNewTask(file *os.File, newTask *Task) error {
-	data, err := io.ReadAll(file)
-
+func saveNewTask(storage storage.IStorage, newTask *Task) error {
+	listTodo, err := readListTask(storage)
 	if err != nil {
 		return err
-	}
-
-	var listTodo []Task
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &listTodo)
-		if err != nil {
-			return err
-		}
 	}
 
 	listTodo = append(listTodo, *newTask)
 
-	err = saveListTask(file, listTodo)
+	err = saveListTask(storage, listTodo)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func saveListTask(file *os.File, listTask []Task) error {
-	listTodoBytes, err := json.Marshal(listTask)
-	if err != nil {
-		return err
-	}
-
-	file.Seek(0, 0)
-	file.Truncate(int64(len(listTodoBytes)))
-
-	_, err = file.Write(listTodoBytes)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -107,5 +71,5 @@ func createNewTask(taskDescription string) *Task {
 }
 
 func (cmd *AddCommand) GetCommand() string {
-	return cmd.name
+	return cmd.cmd.name
 }

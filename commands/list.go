@@ -1,45 +1,31 @@
 package commands
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
+	"ncquang/task-manager/storage"
 	"os"
 )
 
 type ListCommand struct {
-	name string
+	cmd Command
 }
 
-func NewListCommand() *ListCommand {
-	return &ListCommand{name: "list"}
+func NewListCommand(storage storage.IStorage) *ListCommand {
+	return &ListCommand{cmd: Command{
+		name:    "list",
+		storage: storage,
+	}}
 }
 
 func (cmd *ListCommand) Exec() {
-	listCommand := flag.NewFlagSet(cmd.name, flag.ExitOnError)
+	listCommand := flag.NewFlagSet(cmd.cmd.name, flag.ExitOnError)
 	listCommand.Parse(os.Args[2:])
 
-	file, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
-
+	listTask, err := readListTask(cmd.cmd.storage)
 	if err != nil {
-		log.Fatalf("Error while opening file : %v", err)
-		os.Exit(1)
-	}
-
-	data, err := io.ReadAll(file)
-
-	if err != nil {
-		log.Fatalf("Error while reading file: %v", err)
-		os.Exit(1)
-	}
-
-	var listTask []Task
-	err = json.Unmarshal(data, &listTask)
-	if err != nil {
-		log.Fatalf("Error while parsing json: %v", err)
-		os.Exit(1)
+		log.Fatalf("Error %v", err)
 	}
 
 	for _, task := range listTask {
@@ -59,18 +45,6 @@ func (cmd *ListCommand) Exec() {
 	}
 }
 
-func getStatusString(status TaskStatus) string {
-	if status == Todo {
-		return "todo"
-	} else if status == InProgress {
-		return "in-progress"
-	} else if status == Done {
-		return "done"
-	}
-
-	return ""
-}
-
 func (cmd *ListCommand) GetCommand() string {
-	return cmd.name
+	return cmd.cmd.name
 }
