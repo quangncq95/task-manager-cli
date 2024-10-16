@@ -99,8 +99,8 @@ func createNewTask(taskDescription string) *Task {
 		ID:          id,
 		Description: taskDescription,
 		Status:      Todo,
-		CreateAt:    time.Now().String(),
-		UpdateAt:    time.Now().String(),
+		CreateAt:    time.Now().Format(time.DateTime),
+		UpdateAt:    time.Now().Format(time.DateTime),
 	}
 
 	return &newTask

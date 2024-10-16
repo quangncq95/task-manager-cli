@@ -50,10 +50,10 @@ func (cmd *ListCommand) Exec() {
 
 		if len(status) > 0 {
 			if status == "todo" && task.Status == Todo || status == "in-progress" && task.Status == InProgress || status == "done" && task.Status == Done {
-				fmt.Printf("- %v - status:%v \n", task.Description, getStatusString(task.Status))
+				fmt.Printf("- %v - status:%v -ID:%v \n", task.Description, getStatusString(task.Status), task.ID)
 			}
 		} else {
-			fmt.Printf("- %v - status:%v \n", task.Description, getStatusString(task.Status))
+			fmt.Printf("- %v - status:%v -ID:%v \n", task.Description, getStatusString(task.Status), task.ID)
 		}
 
 	}
