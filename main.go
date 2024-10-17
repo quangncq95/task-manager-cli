@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"ncquang/task-manager/commands"
 	"ncquang/task-manager/storage"
@@ -26,6 +25,8 @@ func main() {
 	listCommand = append(listCommand, list)
 	markInProgress := commands.NewMarkInProgressCommand(storage)
 	listCommand = append(listCommand, markInProgress)
+	updateCommand := commands.NewUpdateCommand(storage)
+	listCommand = append(listCommand, updateCommand)
 
 	var matchedCmd commands.CommandInterface = nil
 	for _, cmd := range listCommand {
@@ -37,6 +38,6 @@ func main() {
 	if matchedCmd != nil {
 		matchedCmd.Exec()
 	} else {
-		fmt.Print("Command not found !")
+		log.Fatalf("Command not found !")
 	}
 }
