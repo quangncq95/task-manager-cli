@@ -3,18 +3,26 @@ package storage
 import (
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type FileStorage struct {
 	filePath string
 }
 
-func NewFileStorage(filePath string) (*FileStorage, error) {
-	_, err := os.OpenFile(filePath, os.O_CREATE, 0644)
+func NewFileStorage(directoryPath string, fileName string) (*FileStorage, error) {
+	if _, err := os.Stat(directoryPath); os.IsNotExist(err) {
+		err = os.Mkdir(directoryPath, 0700)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err := os.OpenFile(filepath.Join(directoryPath, fileName), os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
 	}
-	return &FileStorage{filePath: filePath}, nil
+	return &FileStorage{filePath: filepath.Join(directoryPath, fileName)}, nil
 }
 
 func (fileStorage *FileStorage) Read() ([]byte, error) {

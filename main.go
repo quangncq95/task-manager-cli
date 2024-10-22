@@ -5,12 +5,20 @@ import (
 	"ncquang/task-manager/commands"
 	"ncquang/task-manager/storage"
 	"os"
+	"path/filepath"
 )
 
-const filePath = "todo.txt"
+const fileName = "todo"
+const dataFolder = "data"
 
 func main() {
-	storage, err := storage.NewFileStorage(filePath)
+	execPath, err := os.Executable()
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	absPath := filepath.Dir(execPath)
+	storage, err := storage.NewFileStorage(filepath.Join(absPath, dataFolder), fileName)
 	if err != nil {
 		log.Fatalf("Init file storage failed : %v", err)
 	}
